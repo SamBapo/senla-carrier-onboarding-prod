@@ -250,11 +250,39 @@ export const Step2TruckInfo = ({ data, onNext, onBack, language = "en" }: Step2P
               </div>
               {selectedTruckTypes.map((truckType) => {
                 const truckTypeLabel = TRUCK_TYPES.find(t => t.value === truckType)?.label;
+                const isChilled = truckType === "refrigerated";
+                const isFrozen = truckType === "frozen";
+                const isAmbient = truckType === "ambient";
+                
                 return (
-                  <div key={truckType} className="space-y-3">
-                    <h4 className="text-sm font-semibold text-foreground">
-                      {truckTypeLabel}
-                    </h4>
+                  <div 
+                    key={truckType} 
+                    className={`space-y-4 p-4 rounded-lg border-2 ${
+                      isChilled 
+                        ? "bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800" 
+                        : isFrozen 
+                          ? "bg-indigo-50 border-indigo-200 dark:bg-indigo-950/30 dark:border-indigo-800"
+                          : "bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className={`w-3 h-3 rounded-full ${
+                        isChilled 
+                          ? "bg-blue-500" 
+                          : isFrozen 
+                            ? "bg-indigo-600"
+                            : "bg-amber-500"
+                      }`} />
+                      <h4 className={`text-sm font-semibold ${
+                        isChilled 
+                          ? "text-blue-700 dark:text-blue-300" 
+                          : isFrozen 
+                            ? "text-indigo-700 dark:text-indigo-300"
+                            : "text-amber-700 dark:text-amber-300"
+                      }`}>
+                        {truckTypeLabel}
+                      </h4>
+                    </div>
                     <div className="grid grid-cols-3 gap-4">
                       {CAPACITY_OPTIONS.map((capacity) => (
                         <FormField
@@ -271,6 +299,7 @@ export const Step2TruckInfo = ({ data, onNext, onBack, language = "en" }: Step2P
                                   type="number"
                                   min="0"
                                   placeholder="0"
+                                  className="bg-white dark:bg-background"
                                   {...field}
                                   onChange={(e) => {
                                     const value = e.target.value;
