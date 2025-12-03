@@ -30,12 +30,7 @@ import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
-const TRUCK_TYPES = [
-  { value: "ambient", label: "Ambient" },
-  { value: "refrigerated", label: "Refrigerated" },
-  { value: "frozen", label: "Frozen" },
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const CAPACITY_OPTIONS = [
   { value: "3.5", label: "<3.5t" },
@@ -46,14 +41,6 @@ const CAPACITY_OPTIONS = [
   { value: "20", label: ">15t" },
 ];
 
-const formSchema = z.object({
-  truckType: z.string().min(1, "Truck type is required"),
-  capacity: z.string().min(1, "Capacity is required"),
-  licensePlate: z.string().optional(),
-});
-
-type FormData = z.infer<typeof formSchema>;
-
 interface AddTruckDialogProps {
   carrierId: string;
   onTruckAdded: () => void;
@@ -62,6 +49,64 @@ interface AddTruckDialogProps {
 export function AddTruckDialog({ carrierId, onTruckAdded }: AddTruckDialogProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { language } = useLanguage();
+
+  const translations = {
+    en: {
+      addTruck: "Add Truck",
+      addNewTruck: "Add New Truck",
+      addNewTruckDesc: "Add a new truck to your fleet",
+      type: "Type",
+      selectTruckType: "Select truck type",
+      ambient: "Ambient",
+      refrigerated: "Refrigerated",
+      frozen: "Frozen",
+      capacity: "Capacity (ton)",
+      selectCapacity: "Select capacity",
+      licensePlate: "License Plate (optional)",
+      cancel: "Cancel",
+      adding: "Adding...",
+      truckAdded: "Truck added successfully",
+      addFailed: "Failed to add truck",
+      truckTypeRequired: "Truck type is required",
+      capacityRequired: "Capacity is required",
+    },
+    vi: {
+      addTruck: "Thêm xe tải",
+      addNewTruck: "Thêm xe tải mới",
+      addNewTruckDesc: "Thêm xe tải mới vào đội xe của bạn",
+      type: "Loại xe",
+      selectTruckType: "Chọn loại xe",
+      ambient: "Khô (Nhiệt độ thường)",
+      refrigerated: "Mát (2–8°C)",
+      frozen: "Đông lạnh (–18°C)",
+      capacity: "Sức chứa (tấn)",
+      selectCapacity: "Chọn sức chứa",
+      licensePlate: "Biển số xe (không bắt buộc)",
+      cancel: "Hủy",
+      adding: "Đang thêm...",
+      truckAdded: "Đã thêm xe tải thành công",
+      addFailed: "Không thể thêm xe tải",
+      truckTypeRequired: "Vui lòng chọn loại xe",
+      capacityRequired: "Vui lòng chọn sức chứa",
+    },
+  };
+
+  const t = translations[language];
+
+  const TRUCK_TYPES = [
+    { value: "ambient", label: t.ambient },
+    { value: "refrigerated", label: t.refrigerated },
+    { value: "frozen", label: t.frozen },
+  ];
+
+  const formSchema = z.object({
+    truckType: z.string().min(1, t.truckTypeRequired),
+    capacity: z.string().min(1, t.capacityRequired),
+    licensePlate: z.string().optional(),
+  });
+
+  type FormData = z.infer<typeof formSchema>;
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -84,13 +129,13 @@ export function AddTruckDialog({ carrierId, onTruckAdded }: AddTruckDialogProps)
 
       if (error) throw error;
 
-      toast.success("Truck added successfully");
+      toast.success(t.truckAdded);
       form.reset();
       setOpen(false);
       onTruckAdded();
     } catch (error: any) {
       console.error("Error adding truck:", error);
-      toast.error("Failed to add truck");
+      toast.error(t.addFailed);
     } finally {
       setIsSubmitting(false);
     }
@@ -101,14 +146,14 @@ export function AddTruckDialog({ carrierId, onTruckAdded }: AddTruckDialogProps)
       <DialogTrigger asChild>
         <Button variant="default">
           <Plus className="w-4 h-4 mr-2" />
-          Add Truck
+          {t.addTruck}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add New Truck</DialogTitle>
+          <DialogTitle>{t.addNewTruck}</DialogTitle>
           <DialogDescription>
-            Add a new truck to your fleet
+            {t.addNewTruckDesc}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -118,11 +163,11 @@ export function AddTruckDialog({ carrierId, onTruckAdded }: AddTruckDialogProps)
               name="truckType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Type *</FormLabel>
+                  <FormLabel>{t.type} *</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select truck type" />
+                        <SelectValue placeholder={t.selectTruckType} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -143,11 +188,11 @@ export function AddTruckDialog({ carrierId, onTruckAdded }: AddTruckDialogProps)
               name="capacity"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Capacity (ton) *</FormLabel>
+                  <FormLabel>{t.capacity} *</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select capacity" />
+                        <SelectValue placeholder={t.selectCapacity} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -168,7 +213,7 @@ export function AddTruckDialog({ carrierId, onTruckAdded }: AddTruckDialogProps)
               name="licensePlate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>License Plate (optional)</FormLabel>
+                  <FormLabel>{t.licensePlate}</FormLabel>
                   <FormControl>
                     <Input placeholder="51H-123.45" {...field} />
                   </FormControl>
@@ -183,10 +228,10 @@ export function AddTruckDialog({ carrierId, onTruckAdded }: AddTruckDialogProps)
                 variant="outline"
                 onClick={() => setOpen(false)}
               >
-                Cancel
+                {t.cancel}
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Adding..." : "Add Truck"}
+                {isSubmitting ? t.adding : t.addTruck}
               </Button>
             </div>
           </form>
