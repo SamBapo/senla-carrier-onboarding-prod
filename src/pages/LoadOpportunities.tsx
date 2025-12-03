@@ -14,12 +14,103 @@ import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Info } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const removeAccents = (str: string) => {
   return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 };
 
+const translations = {
+  en: {
+    title: "Load Opportunities for You",
+    subtitle: "Browse available loads and accept the ones that fit your fleet",
+    onboardingAlert: "Complete your carrier onboarding to see full load details. Visit",
+    carrierOnboarding: "Carrier Onboarding",
+    toGetStarted: "to get started.",
+    origin: "Origin",
+    originPlaceholder: "E.g., Hà Nội",
+    destination: "Destination",
+    destinationPlaceholder: "E.g., Hồ Chí Minh",
+    pickupDate: "Pickup Date",
+    dropoffDate: "Dropoff Date",
+    temperatureType: "Temperature Type",
+    selectTemperature: "Select temperature",
+    ambient: "Ambient",
+    chilled: "Chilled (0–4°C)",
+    frozen: "Frozen (-18°C)",
+    maxWeight: "Max Weight",
+    noLoads: "No loads match your filters. Try adjusting your search criteria.",
+    loading: "Loading...",
+    loadDetails: "Load Details",
+    loadDetailsDesc: "Complete information about this load opportunity",
+    pickupDeadline: "Pickup Deadline",
+    dropoffDeadline: "Dropoff Deadline",
+    weight: "Weight",
+    pallets: "Pallets",
+    temperature: "Temperature",
+    detourDistance: "Detour Distance",
+    priceEstimate: "Price Estimate",
+    close: "Close",
+    acceptLoad: "Accept Load",
+    confirmAcceptTitle: "Confirm Load Acceptance",
+    confirmAcceptDesc: "Are you sure you want to accept this load?",
+    pickup: "Pickup",
+    cancel: "Cancel",
+    confirmAccept: "Confirm Accept",
+    errorLogin: "You must be logged in to accept loads",
+    errorAccept: "Failed to accept load. Please try again.",
+    loadAccepted: "Load Accepted",
+    loadAcceptedDesc: "You have successfully accepted the load from",
+    to: "to",
+  },
+  vi: {
+    title: "Cơ Hội Vận Chuyển Dành Cho Bạn",
+    subtitle: "Duyệt các chuyến hàng có sẵn và chọn chuyến phù hợp với đội xe của bạn",
+    onboardingAlert: "Hoàn tất đăng ký nhà vận chuyển để xem chi tiết chuyến hàng. Truy cập",
+    carrierOnboarding: "Đăng Ký Nhà Vận Chuyển",
+    toGetStarted: "để bắt đầu.",
+    origin: "Điểm đi",
+    originPlaceholder: "VD: Hà Nội",
+    destination: "Điểm đến",
+    destinationPlaceholder: "VD: Hồ Chí Minh",
+    pickupDate: "Ngày lấy hàng",
+    dropoffDate: "Ngày giao hàng",
+    temperatureType: "Loại nhiệt độ",
+    selectTemperature: "Chọn nhiệt độ",
+    ambient: "Nhiệt độ thường",
+    chilled: "Lạnh (0–4°C)",
+    frozen: "Đông lạnh (-18°C)",
+    maxWeight: "Trọng lượng tối đa",
+    noLoads: "Không có chuyến hàng nào phù hợp với bộ lọc. Hãy thử điều chỉnh tiêu chí tìm kiếm.",
+    loading: "Đang tải...",
+    loadDetails: "Chi Tiết Chuyến Hàng",
+    loadDetailsDesc: "Thông tin đầy đủ về cơ hội vận chuyển này",
+    pickupDeadline: "Hạn lấy hàng",
+    dropoffDeadline: "Hạn giao hàng",
+    weight: "Trọng lượng",
+    pallets: "Số pallet",
+    temperature: "Nhiệt độ",
+    detourDistance: "Khoảng cách đi vòng",
+    priceEstimate: "Giá ước tính",
+    close: "Đóng",
+    acceptLoad: "Nhận Chuyến",
+    confirmAcceptTitle: "Xác Nhận Nhận Chuyến",
+    confirmAcceptDesc: "Bạn có chắc chắn muốn nhận chuyến hàng này?",
+    pickup: "Lấy hàng",
+    cancel: "Hủy",
+    confirmAccept: "Xác Nhận",
+    errorLogin: "Bạn phải đăng nhập để nhận chuyến hàng",
+    errorAccept: "Không thể nhận chuyến hàng. Vui lòng thử lại.",
+    loadAccepted: "Đã Nhận Chuyến",
+    loadAcceptedDesc: "Bạn đã nhận thành công chuyến hàng từ",
+    to: "đến",
+  }
+};
+
 const LoadOpportunities = () => {
+  const { language } = useLanguage();
+  const t = translations[language];
+  
   const [loads, setLoads] = useState<Load[]>(mockLoads);
   const [selectedLoad, setSelectedLoad] = useState<Load | null>(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
@@ -55,7 +146,6 @@ const LoadOpportunities = () => {
 
       if (carrier) {
         setCarrierId(carrier.id);
-        // User is approved if they've completed onboarding (pending or approved status)
         setIsApproved(carrier.status === "pending" || carrier.status === "approved");
       }
       
@@ -82,7 +172,7 @@ const LoadOpportunities = () => {
       if (!session) {
         toast({
           title: "Error",
-          description: "You must be logged in to accept loads",
+          description: t.errorLogin,
           variant: "destructive"
         });
         return;
@@ -106,7 +196,7 @@ const LoadOpportunities = () => {
       if (error) {
         toast({
           title: "Error",
-          description: "Failed to accept load. Please try again.",
+          description: t.errorAccept,
           variant: "destructive"
         });
         return;
@@ -114,8 +204,8 @@ const LoadOpportunities = () => {
 
       setLoads(loads.filter(l => l.id !== selectedLoad.id));
       toast({
-        title: "Load Accepted",
-        description: `You have successfully accepted the load from ${selectedLoad.origin} to ${selectedLoad.destination}`,
+        title: t.loadAccepted,
+        description: `${t.loadAcceptedDesc} ${selectedLoad.origin} ${t.to} ${selectedLoad.destination}`,
       });
       setAcceptModalOpen(false);
       setSelectedLoad(null);
@@ -133,7 +223,7 @@ const LoadOpportunities = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-muted-foreground">Loading...</p>
+        <p className="text-muted-foreground">{t.loading}</p>
       </div>
     );
   }
@@ -142,19 +232,19 @@ const LoadOpportunities = () => {
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Load Opportunities for You</h1>
-          <p className="text-muted-foreground">Browse available loads and accept the ones that fit your fleet</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">{t.title}</h1>
+          <p className="text-muted-foreground">{t.subtitle}</p>
         </div>
 
         {!isApproved && (
           <Alert className="mb-6">
             <Info className="h-4 w-4" />
             <AlertDescription>
-              Complete your carrier onboarding to see full load details. Visit{" "}
+              {t.onboardingAlert}{" "}
               <a href="/register-carrier" className="font-semibold underline">
-                Carrier Onboarding
+                {t.carrierOnboarding}
               </a>{" "}
-              to get started.
+              {t.toGetStarted}
             </AlertDescription>
           </Alert>
         )}
@@ -162,10 +252,10 @@ const LoadOpportunities = () => {
         <div className="bg-card border border-border rounded-xl p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
             <div className="space-y-2">
-              <Label htmlFor="origin" className="text-sm font-medium text-foreground">Origin</Label>
+              <Label htmlFor="origin" className="text-sm font-medium text-foreground">{t.origin}</Label>
               <Input
                 id="origin"
-                placeholder="E.g., Hà Nội"
+                placeholder={t.originPlaceholder}
                 value={filters.origin}
                 onChange={(e) => setFilters({ ...filters, origin: e.target.value })}
                 className="h-11"
@@ -173,10 +263,10 @@ const LoadOpportunities = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="destination" className="text-sm font-medium text-foreground">Destination</Label>
+              <Label htmlFor="destination" className="text-sm font-medium text-foreground">{t.destination}</Label>
               <Input
                 id="destination"
-                placeholder="E.g., Hồ Chí Minh"
+                placeholder={t.destinationPlaceholder}
                 value={filters.destination}
                 onChange={(e) => setFilters({ ...filters, destination: e.target.value })}
                 className="h-11"
@@ -184,7 +274,7 @@ const LoadOpportunities = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="pickupDate" className="text-sm font-medium text-foreground">Pickup Date</Label>
+              <Label htmlFor="pickupDate" className="text-sm font-medium text-foreground">{t.pickupDate}</Label>
               <Input
                 id="pickupDate"
                 type="date"
@@ -195,7 +285,7 @@ const LoadOpportunities = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="dropoffDate" className="text-sm font-medium text-foreground">Dropoff Date</Label>
+              <Label htmlFor="dropoffDate" className="text-sm font-medium text-foreground">{t.dropoffDate}</Label>
               <Input
                 id="dropoffDate"
                 type="date"
@@ -206,21 +296,21 @@ const LoadOpportunities = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="temperature" className="text-sm font-medium text-foreground">Temperature Type</Label>
+              <Label htmlFor="temperature" className="text-sm font-medium text-foreground">{t.temperatureType}</Label>
               <Select value={filters.temperature} onValueChange={(value) => setFilters({ ...filters, temperature: value })}>
                 <SelectTrigger id="temperature" className="h-11">
-                  <SelectValue placeholder="Select temperature" />
+                  <SelectValue placeholder={t.selectTemperature} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Ambient">Ambient</SelectItem>
-                  <SelectItem value="Chilled (0-4°C)">Chilled (0–4°C)</SelectItem>
-                  <SelectItem value="Frozen (-18°C)">Frozen (-18°C)</SelectItem>
+                  <SelectItem value="Ambient">{t.ambient}</SelectItem>
+                  <SelectItem value="Chilled (0-4°C)">{t.chilled}</SelectItem>
+                  <SelectItem value="Frozen (-18°C)">{t.frozen}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="maxWeight" className="text-sm font-medium text-foreground">Max Weight: {filters.maxWeight.toLocaleString()} kg</Label>
+              <Label htmlFor="maxWeight" className="text-sm font-medium text-foreground">{t.maxWeight}: {filters.maxWeight.toLocaleString()} kg</Label>
               <Slider
                 id="maxWeight"
                 min={0}
@@ -250,7 +340,7 @@ const LoadOpportunities = () => {
             ))
           ) : (
             <div className="text-center py-12 text-muted-foreground">
-              No loads match your filters. Try adjusting your search criteria.
+              {t.noLoads}
             </div>
           )}
         </div>
@@ -259,59 +349,59 @@ const LoadOpportunities = () => {
       <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Load Details</DialogTitle>
-            <DialogDescription>Complete information about this load opportunity</DialogDescription>
+            <DialogTitle>{t.loadDetails}</DialogTitle>
+            <DialogDescription>{t.loadDetailsDesc}</DialogDescription>
           </DialogHeader>
           {selectedLoad && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">Origin</p>
+                  <p className="text-sm text-muted-foreground">{t.origin}</p>
                   <p className="font-semibold">{selectedLoad.origin}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Destination</p>
+                  <p className="text-sm text-muted-foreground">{t.destination}</p>
                   <p className="font-semibold">{selectedLoad.destination}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Pickup Deadline</p>
+                  <p className="text-sm text-muted-foreground">{t.pickupDeadline}</p>
                   <p className="font-semibold">{format(new Date(selectedLoad.pickupDeadline), 'dd MMM yyyy – HH:mm')}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Dropoff Deadline</p>
+                  <p className="text-sm text-muted-foreground">{t.dropoffDeadline}</p>
                   <p className="font-semibold">{format(new Date(selectedLoad.dropoffDeadline), 'dd MMM yyyy – HH:mm')}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Weight</p>
+                  <p className="text-sm text-muted-foreground">{t.weight}</p>
                   <p className="font-semibold">{selectedLoad.weight.toLocaleString()} kg</p>
                 </div>
                 {selectedLoad.pallets && (
                   <div>
-                    <p className="text-sm text-muted-foreground">Pallets</p>
+                    <p className="text-sm text-muted-foreground">{t.pallets}</p>
                     <p className="font-semibold">{selectedLoad.pallets}</p>
                   </div>
                 )}
                 <div>
-                  <p className="text-sm text-muted-foreground">Temperature</p>
+                  <p className="text-sm text-muted-foreground">{t.temperature}</p>
                   <p className="font-semibold">{selectedLoad.temperature}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Detour Distance</p>
+                  <p className="text-sm text-muted-foreground">{t.detourDistance}</p>
                   <p className="font-semibold">{selectedLoad.detourDistance} km</p>
                 </div>
                 <div className="col-span-2">
-                  <p className="text-sm text-muted-foreground">Price Estimate</p>
+                  <p className="text-sm text-muted-foreground">{t.priceEstimate}</p>
                   <p className="text-2xl font-bold text-primary">{formatVND(selectedLoad.priceEstimate)}</p>
                 </div>
               </div>
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDetailsModalOpen(false)}>Close</Button>
+            <Button variant="outline" onClick={() => setDetailsModalOpen(false)}>{t.close}</Button>
             <Button onClick={() => {
               setDetailsModalOpen(false);
               if (selectedLoad) handleAcceptClick(selectedLoad);
-            }}>Accept Load</Button>
+            }}>{t.acceptLoad}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -319,23 +409,23 @@ const LoadOpportunities = () => {
       <Dialog open={acceptModalOpen} onOpenChange={setAcceptModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirm Load Acceptance</DialogTitle>
+            <DialogTitle>{t.confirmAcceptTitle}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to accept this load?
+              {t.confirmAcceptDesc}
             </DialogDescription>
           </DialogHeader>
           {selectedLoad && (
             <div className="space-y-2">
               <p className="font-semibold">{selectedLoad.origin} → {selectedLoad.destination}</p>
               <p className="text-sm text-muted-foreground">
-                Pickup: {format(new Date(selectedLoad.pickupDeadline), 'dd MMM yyyy – HH:mm')}
+                {t.pickup}: {format(new Date(selectedLoad.pickupDeadline), 'dd MMM yyyy – HH:mm')}
               </p>
               <p className="text-lg font-bold text-primary">{formatVND(selectedLoad.priceEstimate)}</p>
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAcceptModalOpen(false)}>Cancel</Button>
-            <Button onClick={handleConfirmAccept}>Confirm Accept</Button>
+            <Button variant="outline" onClick={() => setAcceptModalOpen(false)}>{t.cancel}</Button>
+            <Button onClick={handleConfirmAccept}>{t.confirmAccept}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

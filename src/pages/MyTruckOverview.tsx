@@ -16,6 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { AddTruckDialog } from "@/components/AddTruckDialog";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Truck {
   id: string;
@@ -24,7 +25,79 @@ interface Truck {
   license_plate: string;
 }
 
+const translations = {
+  en: {
+    title: "My Truck Overview",
+    subtitle: "Manage your fleet and update truck information",
+    subtitleEmpty: "Monitor your fleet performance and availability",
+    noTrucks: "No Trucks Registered",
+    noTrucksDesc: "Complete your carrier onboarding to add your trucks and start tracking their performance.",
+    loading: "Loading trucks...",
+    noCarrier: "No carrier profile found. Please complete registration.",
+    failedLoad: "Failed to load trucks",
+    truckType: "Truck Type",
+    allTypes: "All Types",
+    ambient: "Ambient",
+    refrigerated: "Refrigerated",
+    frozen: "Frozen",
+    capacity: "Capacity",
+    allCapacities: "All Capacities",
+    missingLicensePlate: "Missing license plate",
+    type: "Type",
+    licensePlate: "License Plate",
+    actions: "Actions",
+    save: "Save",
+    plateUpdated: "License plate updated successfully",
+    plateUpdateFailed: "Failed to update license plate",
+    confirmDelete: "Are you sure you want to delete this truck?",
+    truckDeleted: "Truck deleted successfully",
+    truckDeleteFailed: "Failed to delete truck",
+    registeredCapacity: "Registered capacity",
+    trucks: "trucks",
+    currentTrucks: "Current trucks",
+    showing: "Showing",
+    addMore: "Add",
+    moreTrucks: "more trucks",
+  },
+  vi: {
+    title: "Tổng Quan Xe Tải",
+    subtitle: "Quản lý đội xe và cập nhật thông tin xe",
+    subtitleEmpty: "Theo dõi hiệu suất và tình trạng sẵn sàng của đội xe",
+    noTrucks: "Chưa Đăng Ký Xe",
+    noTrucksDesc: "Hoàn tất đăng ký nhà vận chuyển để thêm xe và bắt đầu theo dõi hiệu suất.",
+    loading: "Đang tải xe...",
+    noCarrier: "Không tìm thấy hồ sơ nhà vận chuyển. Vui lòng hoàn tất đăng ký.",
+    failedLoad: "Không thể tải danh sách xe",
+    truckType: "Loại xe",
+    allTypes: "Tất cả loại",
+    ambient: "Nhiệt độ thường",
+    refrigerated: "Xe lạnh",
+    frozen: "Xe đông lạnh",
+    capacity: "Tải trọng",
+    allCapacities: "Tất cả tải trọng",
+    missingLicensePlate: "Thiếu biển số",
+    type: "Loại",
+    licensePlate: "Biển số xe",
+    actions: "Thao tác",
+    save: "Lưu",
+    plateUpdated: "Cập nhật biển số thành công",
+    plateUpdateFailed: "Không thể cập nhật biển số",
+    confirmDelete: "Bạn có chắc chắn muốn xóa xe này?",
+    truckDeleted: "Đã xóa xe thành công",
+    truckDeleteFailed: "Không thể xóa xe",
+    registeredCapacity: "Số xe đăng ký",
+    trucks: "xe",
+    currentTrucks: "Xe hiện tại",
+    showing: "Đang hiển thị",
+    addMore: "Thêm",
+    moreTrucks: "xe nữa",
+  }
+};
+
 const MyTruckOverview = () => {
+  const { language } = useLanguage();
+  const t = translations[language];
+  
   const navigate = useNavigate();
   const [trucks, setTrucks] = useState<Truck[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,7 +129,7 @@ const MyTruckOverview = () => {
         .maybeSingle();
 
       if (!carrier) {
-        toast.error("No carrier profile found. Please complete registration.");
+        toast.error(t.noCarrier);
         navigate("/register-carrier");
         return;
       }
@@ -85,7 +158,7 @@ const MyTruckOverview = () => {
       setTrucks(trucksData || []);
     } catch (error: any) {
       console.error("Error loading trucks:", error);
-      toast.error("Failed to load trucks");
+      toast.error(t.failedLoad);
     } finally {
       setLoading(false);
     }
@@ -93,9 +166,9 @@ const MyTruckOverview = () => {
 
   const getTruckTypeDisplay = (type: string) => {
     const typeMap: Record<string, string> = {
-      ambient: "Ambient",
-      refrigerated: "Refrigerated",
-      frozen: "Frozen",
+      ambient: t.ambient,
+      refrigerated: t.refrigerated,
+      frozen: t.frozen,
     };
     return typeMap[type] || type;
   };
@@ -136,15 +209,15 @@ const MyTruckOverview = () => {
       const { [truckId]: _, ...rest } = editedPlates;
       setEditedPlates(rest);
 
-      toast.success("License plate updated successfully");
+      toast.success(t.plateUpdated);
     } catch (error: any) {
       console.error("Error updating license plate:", error);
-      toast.error("Failed to update license plate");
+      toast.error(t.plateUpdateFailed);
     }
   };
 
   const handleDeleteTruck = async (truckId: string) => {
-    if (!confirm("Are you sure you want to delete this truck?")) return;
+    if (!confirm(t.confirmDelete)) return;
 
     try {
       const { error } = await supabase
@@ -155,10 +228,10 @@ const MyTruckOverview = () => {
       if (error) throw error;
 
       setTrucks(trucks.filter(t => t.id !== truckId));
-      toast.success("Truck deleted successfully");
+      toast.success(t.truckDeleted);
     } catch (error: any) {
       console.error("Error deleting truck:", error);
-      toast.error("Failed to delete truck");
+      toast.error(t.truckDeleteFailed);
     }
   };
 
@@ -188,7 +261,7 @@ const MyTruckOverview = () => {
     return (
       <div className="max-w-7xl mx-auto px-8 py-8">
         <div className="flex items-center justify-center py-16">
-          <p className="text-muted-foreground">Loading trucks...</p>
+          <p className="text-muted-foreground">{t.loading}</p>
         </div>
       </div>
     );
@@ -198,19 +271,19 @@ const MyTruckOverview = () => {
     return (
       <div className="max-w-7xl mx-auto px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">My Truck Overview</h1>
+          <h1 className="text-3xl font-bold text-foreground">{t.title}</h1>
           <p className="text-muted-foreground mt-2">
-            Monitor your fleet performance and availability
+            {t.subtitleEmpty}
           </p>
         </div>
 
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <TruckIcon className="w-16 h-16 text-muted-foreground mb-4" />
           <h2 className="text-xl font-semibold text-foreground mb-2">
-            No Trucks Registered
+            {t.noTrucks}
           </h2>
           <p className="text-muted-foreground max-w-md">
-            Complete your carrier onboarding to add your trucks and start tracking their performance.
+            {t.noTrucksDesc}
           </p>
         </div>
       </div>
@@ -222,9 +295,9 @@ const MyTruckOverview = () => {
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">My Truck Overview</h1>
+            <h1 className="text-3xl font-bold text-foreground">{t.title}</h1>
             <p className="text-muted-foreground mt-2">
-              Manage your fleet and update truck information
+              {t.subtitle}
             </p>
           </div>
           {carrierId && <AddTruckDialog carrierId={carrierId} onTruckAdded={loadTrucks} />}
@@ -236,22 +309,22 @@ const MyTruckOverview = () => {
           
           <Select value={filterType} onValueChange={setFilterType}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Truck Type" />
+              <SelectValue placeholder={t.truckType} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="ambient">Ambient</SelectItem>
-              <SelectItem value="refrigerated">Refrigerated</SelectItem>
-              <SelectItem value="frozen">Frozen</SelectItem>
+              <SelectItem value="all">{t.allTypes}</SelectItem>
+              <SelectItem value="ambient">{t.ambient}</SelectItem>
+              <SelectItem value="refrigerated">{t.refrigerated}</SelectItem>
+              <SelectItem value="frozen">{t.frozen}</SelectItem>
             </SelectContent>
           </Select>
 
           <Select value={filterCapacity} onValueChange={setFilterCapacity}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Capacity" />
+              <SelectValue placeholder={t.capacity} />
             </SelectTrigger>
             <SelectContent className="max-h-[300px]">
-              <SelectItem value="all">All Capacities</SelectItem>
+              <SelectItem value="all">{t.allCapacities}</SelectItem>
               {STANDARD_CAPACITY_OPTIONS.map(cap => (
                 <SelectItem key={cap} value={cap}>{cap}</SelectItem>
               ))}
@@ -265,7 +338,7 @@ const MyTruckOverview = () => {
               onCheckedChange={(checked) => setFilterMissingPlate(checked as boolean)}
             />
             <label htmlFor="missing-plate" className="text-sm font-medium cursor-pointer">
-              Missing license plate
+              {t.missingLicensePlate}
             </label>
           </div>
         </div>
@@ -276,10 +349,10 @@ const MyTruckOverview = () => {
           <TableHeader>
             <TableRow>
               <TableHead className="w-[100px]">#</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Capacity</TableHead>
-              <TableHead>License Plate</TableHead>
-              <TableHead className="w-[180px]">Actions</TableHead>
+              <TableHead>{t.type}</TableHead>
+              <TableHead>{t.capacity}</TableHead>
+              <TableHead>{t.licensePlate}</TableHead>
+              <TableHead className="w-[180px]">{t.actions}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -310,7 +383,7 @@ const MyTruckOverview = () => {
                         disabled={!hasChanges}
                       >
                         <Save className="w-4 h-4 mr-1" />
-                        Save
+                        {t.save}
                       </Button>
                       <Button
                         size="sm"
@@ -330,10 +403,10 @@ const MyTruckOverview = () => {
 
       <div className="mt-4 flex justify-between items-center">
         <div className="text-sm text-muted-foreground">
-          Registered capacity: {numberOfTrucks} trucks | Current trucks: {trucks.length} | Showing: {filteredTrucks.length}
+          {t.registeredCapacity}: {numberOfTrucks} {t.trucks} | {t.currentTrucks}: {trucks.length} | {t.showing}: {filteredTrucks.length}
           {trucks.length < numberOfTrucks && (
             <span className="ml-2 text-amber-600">
-              (Add {numberOfTrucks - trucks.length} more trucks)
+              ({t.addMore} {numberOfTrucks - trucks.length} {t.moreTrucks})
             </span>
           )}
         </div>
