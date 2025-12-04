@@ -83,8 +83,7 @@ export const Step2TruckInfo = ({ data, onNext, onBack, language = "en" }: Step2P
       frozen: "Frozen (–18°C)",
       typeCapacity: "Type Capacity",
       typeCapacityDesc: "How many trucks do you have of each capacity?",
-      coverageArea: "Coverage Area",
-      selectCoverage: "Select coverage",
+      coverageArea: "Select the provinces you cover",
       back: "Back",
       continue: "Continue",
       errors: {
@@ -103,8 +102,7 @@ export const Step2TruckInfo = ({ data, onNext, onBack, language = "en" }: Step2P
       frozen: "Đông lạnh (–18°C)",
       typeCapacity: "Sức chứa theo loại",
       typeCapacityDesc: "Bạn có bao nhiêu xe cho mỗi sức chứa?",
-      coverageArea: "Khu vực phủ sóng",
-      selectCoverage: "Chọn khu vực",
+      coverageArea: "Chọn các tỉnh bạn phủ sóng",
       back: "Quay lại",
       continue: "Tiếp tục",
       errors: {
@@ -330,7 +328,21 @@ export const Step2TruckInfo = ({ data, onNext, onBack, language = "en" }: Step2P
                   {REGIONS.map((region) => {
                     const regionProvinces = PROVINCE_OPTIONS.filter(
                       (p) => p.region === region
-                    );
+                    ).sort((a, b) => a.label.localeCompare(b.label));
+                    
+                    // Reorder for bottom-to-top, left-to-right display in 3-column grid
+                    const cols = 3;
+                    const rows = Math.ceil(regionProvinces.length / cols);
+                    const reorderedProvinces: typeof regionProvinces = [];
+                    for (let row = rows - 1; row >= 0; row--) {
+                      for (let col = 0; col < cols; col++) {
+                        const index = row * cols + col;
+                        if (index < regionProvinces.length) {
+                          reorderedProvinces.push(regionProvinces[index]);
+                        }
+                      }
+                    }
+                    
                     return (
                       <div key={region} className="space-y-3">
                         <div className="flex items-center space-x-2">
@@ -349,7 +361,7 @@ export const Step2TruckInfo = ({ data, onNext, onBack, language = "en" }: Step2P
                           </label>
                         </div>
                         <div className="ml-6 grid grid-cols-3 gap-3">
-                          {regionProvinces.map((province) => (
+                          {reorderedProvinces.map((province) => (
                             <FormField
                               key={province.value}
                               control={form.control}
@@ -358,10 +370,11 @@ export const Step2TruckInfo = ({ data, onNext, onBack, language = "en" }: Step2P
                                 return (
                                   <FormItem
                                     key={province.value}
-                                    className="flex flex-row items-center space-x-2 space-y-0"
+                                    className="flex flex-row items-start space-x-2 space-y-0"
                                   >
                                     <FormControl>
                                       <Checkbox
+                                        className="mt-0.5"
                                         checked={field.value?.includes(
                                           province.value
                                         )}
@@ -379,8 +392,13 @@ export const Step2TruckInfo = ({ data, onNext, onBack, language = "en" }: Step2P
                                         }}
                                       />
                                     </FormControl>
-                                    <FormLabel className="text-xs font-normal">
-                                      {province.label}
+                                    <FormLabel className="text-xs font-normal leading-tight">
+                                      <div>{province.label}</div>
+                                      {province.provinces.length > 1 && (
+                                        <div className="text-[10px] text-muted-foreground">
+                                          {province.provinces.join(", ")}
+                                        </div>
+                                      )}
                                     </FormLabel>
                                   </FormItem>
                                 );
