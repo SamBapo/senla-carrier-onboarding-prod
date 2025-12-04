@@ -330,15 +330,15 @@ export const Step2TruckInfo = ({ data, onNext, onBack, language = "en" }: Step2P
                       (p) => p.region === region
                     ).sort((a, b) => a.label.localeCompare(b.label));
                     
-                    // Reorder for bottom-to-top, left-to-right display in 3-column grid
+                    // Reorder for top-to-bottom, left-to-right display in 3-column grid
                     const cols = 3;
                     const rows = Math.ceil(regionProvinces.length / cols);
                     const reorderedProvinces: typeof regionProvinces = [];
-                    for (let row = rows - 1; row >= 0; row--) {
+                    for (let row = 0; row < rows; row++) {
                       for (let col = 0; col < cols; col++) {
-                        const index = row * cols + col;
-                        if (index < regionProvinces.length) {
-                          reorderedProvinces.push(regionProvinces[index]);
+                        const sortedIndex = col * rows + row;
+                        if (sortedIndex < regionProvinces.length) {
+                          reorderedProvinces.push(regionProvinces[sortedIndex]);
                         }
                       }
                     }
